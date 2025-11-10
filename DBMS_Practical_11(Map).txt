@@ -1,0 +1,45 @@
+// 1. switch to database
+show dbs
+use bill
+
+// 2. insert sample documents
+db.pay.insertMany([
+  { Cust_ID: "A123", Product: "Milk",       Amount: 40, Status: "P"  },
+  { Cust_ID: "A123", Product: "Parle_G",    Amount: 50, Status: "NP" },
+  { Cust_ID: "A123", Product: "Lays Chips", Amount: 40, Status: "P"  },
+  { Cust_ID: "B123", Product: "Mentos",     Amount: 10, Status: "P"  },
+  { Cust_ID: "B123", Product: "Maggie",     Amount: 60, Status: "NP" }
+]);
+
+// 3. verify documents
+db.pay.find().pretty();
+
+// 4. MapReduce: compute total Amount per Cust_ID for documents with Status == "NP"
+// map function emits (custId, amount)
+var mapFunc = function() {
+  emit(this.Cust_ID, this.Amount);
+};
+
+// reduce function sums the amounts for each key
+var reduceFunc = function(keyCustID, amountsArray) {
+  return Array.sum(amountsArray);
+};
+
+// run MapReduce with a query filter (only Status: "NP") and save output to collection "Bill_Amount"
+db.pay.mapReduce(
+  mapFunc,
+  reduceFunc,
+  {
+    query: { Status: "NP" },   // only include non-paid entries
+    out: "Bill_Amount"
+  }
+);
+
+// 5. Inspect the map-reduce results saved in Bill_Amount
+print("=== Bill_Amount (only Status NP) ===");
+db.Bill_Amount.find().pretty();
+
+// 6. Example: run MapReduce on entire collection and save to "Map" (sums per customer)
+db.pay.mapReduce(mapFunc, reduceFunc, { out: "Map" });
+print("=== Map (sum of all Amounts per Cust_ID) ===");
+db.Map.find().pretty();

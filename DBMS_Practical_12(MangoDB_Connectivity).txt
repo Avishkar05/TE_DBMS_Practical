@@ -1,0 +1,158 @@
+package delete_this;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Scanner;
+
+/**
+ * Simple Java program to connect to MySQL database and
+ * perform basic CRUD operations (insert, display, delete, update).
+ */
+public class JavaToMySQL {
+
+    // JDBC URL, username and password of MySQL server
+    private static final String URL = "jdbc:mysql://localhost:3306/test";
+    private static final String USER = "root";
+    private static final String PASSWORD = "root@123*";
+
+    // load driver (optional for modern drivers, but harmless)
+    static {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            // If the driver isn't available, JDBC calls will fail later.
+            System.err.println("MySQL JDBC driver not found in classpath.");
+        }
+    }
+
+    private static void insertEntry(Scanner sc) {
+        System.out.print("Enter id: ");
+        int id = readInt(sc);
+        System.out.print("Enter name: ");
+        String name = sc.nextLine().trim();
+
+        String sql = "INSERT INTO books (id, name) VALUES (?, ?)";
+        try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement pst = con.prepareStatement(sql)) {
+
+            pst.setInt(1, id);
+            pst.setString(2, name);
+            int rows = pst.executeUpdate();
+            System.out.println("Inserted rows: " + rows);
+
+        } catch (SQLException e) {
+            System.err.println("Error while inserting: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static void display(Scanner sc) {
+        String sql = "SELECT id, name FROM books ORDER BY id";
+        try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement pst = con.prepareStatement(sql);
+             ResultSet rs = pst.executeQuery()) {
+
+            System.out.println("ID\tNAME");
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                System.out.println(id + "\t" + name);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error while querying/displaying: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static void deleteRecord(Scanner sc) {
+        System.out.print("Enter id to delete record: ");
+        int id = readInt(sc);
+
+        String sql = "DELETE FROM books WHERE id = ?";
+        try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement pst = con.prepareStatement(sql)) {
+
+            pst.setInt(1, id);
+            int rows = pst.executeUpdate();
+            System.out.println("Deleted rows: " + rows);
+
+        } catch (SQLException e) {
+            System.err.println("Error while deleting: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static void updateRecord(Scanner sc) {
+        System.out.print("Enter id to update record: ");
+        int oldId = readInt(sc);
+        System.out.print("Enter new id: ");
+        int newId = readInt(sc);
+
+        String sql = "UPDATE books SET id = ? WHERE id = ?";
+        try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement pst = con.prepareStatement(sql)) {
+
+            pst.setInt(1, newId);
+            pst.setInt(2, oldId);
+            int rows = pst.executeUpdate();
+            System.out.println("Updated rows: " + rows);
+
+        } catch (SQLException e) {
+            System.err.println("Error while updating: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // helper to read an integer robustly
+    private static int readInt(Scanner sc) {
+        while (true) {
+            String line = sc.nextLine().trim();
+            try {
+                return Integer.parseInt(line);
+            } catch (NumberFormatException e) {
+                System.out.print("Invalid number. Please enter again: ");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        try (Scanner sc = new Scanner(System.in)) {
+            boolean cont = true;
+            while (cont) {
+                System.out.println("\nMenu:");
+                System.out.println("1. Insert");
+                System.out.println("2. Display");
+                System.out.println("3. Delete");
+                System.out.println("4. Update");
+                System.out.print("Enter your choice: ");
+
+                int ch = readInt(sc);
+                switch (ch) {
+                    case 1:
+                        insertEntry(sc);
+                        break;
+                    case 2:
+                        display(sc);
+                        break;
+                    case 3:
+                        deleteRecord(sc);
+                        break;
+                    case 4:
+                        updateRecord(sc);
+                        break;
+                    default:
+                        System.out.println("Invalid choice.");
+                }
+
+                System.out.print("Do you want to continue? (y/n): ");
+                String answer = sc.nextLine().trim();
+                cont = answer.equalsIgnoreCase("y");
+            }
+        } // scanner auto-closed
+        System.out.println("Program terminated.");
+    }
+}

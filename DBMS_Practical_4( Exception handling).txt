@@ -1,0 +1,18 @@
+create table library(roll_no number(5),name varchar2(10),date_of_issue date,nmae_of_bo r2(10),status varchar2(10));
+
+insert into library values(2,'gita','23-july-19','c++','notreturn');
+
+insert into library values(3,'sita','24-july-19','ada','return');
+
+insert into library values(4,'mita','25-july-19','mp','notreturn');
+
+select * from library;
+
+create table fine2(roll_no number(10),date_of_return date,amount number(10));
+
+insert into fine2 values(1,'25-august-19',50);
+
+insert into fine2 values(3,'27-august-19',70);
+
+select * from fine2;
+

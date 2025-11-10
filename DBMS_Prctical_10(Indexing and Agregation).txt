@@ -1,0 +1,74 @@
+// switch to database (creates if not exists)
+show dbs
+use customer
+
+// insert sample documents (Amount as Number)
+db.cust_table.insertMany([
+  { Item_id: 1, Cust_Name: "Ram",    Product: "Milk",       Amount: 40 },
+  { Item_id: 2, Cust_Name: "Ram",    Product: "Parle_G",    Amount: 50 },
+  { Item_id: 3, Cust_Name: "Mohan",  Product: "Lays Chips", Amount: 40 },
+  { Item_id: 4, Cust_Name: "Shivam", Product: "Mentos",     Amount: 10 },
+  { Item_id: 5, Cust_Name: "Mohan",  Product: "Maggie",     Amount: 60 }
+]);
+
+// show all rows
+db.cust_table.find().pretty();
+
+// NOTE: aggregate expects an array of pipeline stages.
+// 1) SUM of Amount per customer
+db.cust_table.aggregate([
+  { $group: { _id: "$Cust_Name", totalAmount: { $sum: "$Amount" } } }
+]).pretty();
+
+// 2) AVERAGE Amount per customer
+db.cust_table.aggregate([
+  { $group: { _id: "$Cust_Name", avgAmount: { $avg: "$Amount" } } }
+]).pretty();
+
+// 3) MIN Amount per customer
+db.cust_table.aggregate([
+  { $group: { _id: "$Cust_Name", minAmount: { $min: "$Amount" } } }
+]).pretty();
+
+// 4) MAX Amount per customer
+db.cust_table.aggregate([
+  { $group: { _id: "$Cust_Name", maxAmount: { $max: "$Amount" } } }
+]).pretty();
+
+// 5) FIRST and LAST require a deterministic order — sort first, then group
+db.cust_table.aggregate([
+  { $sort: { Item_id: 1 } },
+  { $group: { _id: "$Cust_Name", firstAmount: { $first: "$Amount" }, lastAmount: { $last: "$Amount" } } }
+]).pretty();
+
+// 6) PUSH (collect all Amounts for each customer into an array)
+db.cust_table.aggregate([
+  { $group: { _id: "$Cust_Name", amounts: { $push: "$Amount" } } }
+]).pretty();
+
+// 7) addToSet (unique amounts per customer)
+db.cust_table.aggregate([
+  { $group: { _id: "$Cust_Name", uniqueAmounts: { $addToSet: "$Amount" } } }
+]).pretty();
+
+// 8) count of transactions (documents) per customer
+db.cust_table.aggregate([
+  { $group: { _id: "$Cust_Name", txCount: { $sum: 1 } } }
+]).pretty();
+
+
+// --------------------
+// Indexing examples
+// --------------------
+
+// create index on Item_id (ascending)
+db.cust_table.createIndex({ Item_id: 1 });
+
+// show indexes
+db.cust_table.getIndexes();
+
+// drop index by key pattern (works if index key matches exactly)
+db.cust_table.dropIndex({ Item_id: 1 });
+
+// show indexes again
+db.cust_table.getIndexes();

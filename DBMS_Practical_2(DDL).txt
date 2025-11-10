@@ -1,0 +1,52 @@
+-- Create employee table
+CREATE TABLE emp (
+  emp_id INT PRIMARY KEY,
+  emp_name VARCHAR(50),
+  job VARCHAR(30),
+  manager_id INT,
+  hire_date DATE,
+  salary DECIMAL(10, 2),
+  dept_id INT
+);
+
+-- Insert data into employee table
+INSERT INTO emp VALUES (101, 'Alice', 'Manager', NULL, '2020-01-10', 75000.00, 10);
+INSERT INTO emp VALUES (102, 'Bob', 'Developer', 101, '2021-03-15', 55000.00, 10);
+INSERT INTO emp VALUES (103, 'Charlie', 'Developer', 101, '2022-06-01', 53000.00, 10);
+INSERT INTO emp VALUES (104, 'David', 'Salesman', 105, '2020-11-21', 40000.00, 20);
+INSERT INTO emp VALUES (105, 'Eve', 'Sales Manager', NULL, '2019-08-30', 70000.00, 20);
+
+-- Create department table
+CREATE TABLE dept (
+  dept_id INT PRIMARY KEY,
+  dept_name VARCHAR(50),
+  location VARCHAR(50)
+);
+
+-- Insert data into department table
+INSERT INTO dept VALUES (10, 'IT', 'New York');
+INSERT INTO dept VALUES (20, 'Sales', 'Chicago');
+
+-- Select all employees
+SELECT * FROM emp;
+
+-- Select all departments
+SELECT * FROM dept;
+
+-- Create a view for IT department employees
+CREATE VIEW it_employees AS SELECT emp_name, job FROM emp WHERE dept_id = 10;
+
+-- Query the view
+SELECT * FROM it_employees;
+
+-- Alter employee table to add email address column
+ALTER TABLE emp ADD email VARCHAR(100);
+
+-- Delete an employee record
+DELETE FROM emp WHERE emp_id = 103;
+
+-- Check remaining employees
+SELECT * FROM emp;
+
+-- Drop the department table
+DROP TABLE dept; 	
